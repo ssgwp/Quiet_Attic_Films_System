@@ -1,0 +1,635 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Data.SqlClient;
+using System.Drawing;
+using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace DataBase_system.Admin
+{
+    public partial class ad_payment : Form
+    {
+        [DllImport("Gdi32.dll", EntryPoint = "CreateRoundRectRgn")]
+        private static extern IntPtr CreateRoundRectRgn
+            (
+                int nLeft,
+                int nTop,
+                int nRight,
+                int nBottom,
+                int nWidhtEllipse,
+                int nHeightEllipse
+            );
+
+        public string tra { get; set; }
+
+        public ad_payment()
+        {
+            InitializeComponent();
+
+            this.FormBorderStyle = FormBorderStyle.None;
+            this.Region = System.Drawing.Region.FromHrgn(CreateRoundRectRgn(0, 0, Width, Height, 30, 30));
+        }
+
+        string connectionString = "Data Source=ASUS\\SQLEXPRESS;Initial Catalog=quiet_attic_films; Integrated Security=True;";
+
+        private void ad_payment_Load(object sender, EventArgs e)
+        {
+            buttexit.Region = Region.FromHrgn(CreateRoundRectRgn(0, 0, buttexit.Width, buttexit.Height, 20, 20));
+            buttlogout.Region = Region.FromHrgn(CreateRoundRectRgn(0, 0, buttlogout.Width, buttlogout.Height, 20, 20));
+            menupanel.Region = Region.FromHrgn(CreateRoundRectRgn(0, 0, menupanel.Width, menupanel.Height, 20, 20));
+            buttonclandre.Region = Region.FromHrgn(CreateRoundRectRgn(0, 0, buttonclandre.Width, buttonclandre.Height, 20, 20));
+
+            //data gridview1
+            try
+            {
+                using (SqlConnection Con = new SqlConnection(connectionString))
+                {
+                    Con.Open();
+
+                    string query = "SELECT DISTINCT production_id, product_name, customer_id, payment_id, amount, date_is, payment_type_name, invoice_id FROM view11";
+
+                    using (SqlCommand cmd = new SqlCommand(query, Con))
+                    {
+                        using (SqlDataAdapter da = new SqlDataAdapter(cmd))
+                        {
+                            DataTable dt = new DataTable();
+                            da.Fill(dt);
+                            dataGridView1.DataSource = dt;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("An error occurred: " + ex.Message);
+            }
+
+            //filter combobox product id
+            try
+            {
+                using (SqlConnection Con = new SqlConnection(connectionString))
+                {
+                    SqlCommand cmd = new SqlCommand("SELECT DISTINCT production_id, production_price, customer_id, payment_id, amount, date_is, payment_type_name, invoice_id FROM view11", Con);
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    da.SelectCommand = cmd;
+                    DataTable table1 = new DataTable();
+                    da.Fill(table1);
+
+                    DataTable uniqueTable = table1.AsEnumerable()
+                                                  .GroupBy(row => row.Field<int>("production_id"))
+                                                  .Select(group => group.First())
+                                                  .CopyToDataTable();
+
+                    comboBoxpid.DataSource = uniqueTable;
+                    comboBoxpid.DisplayMember = "production_id";
+                    comboBoxpid.ValueMember = "production_id";
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("An error occurred: " + ex.Message);
+            }
+
+            //filter combobox customer id
+            try
+            {
+                using (SqlConnection Con = new SqlConnection(connectionString))
+                {
+                    SqlCommand cmd = new SqlCommand("SELECT DISTINCT production_id, production_price, customer_id, payment_id, amount, date_is, payment_type_name, invoice_id FROM view11", Con);
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    da.SelectCommand = cmd;
+                    DataTable table1 = new DataTable();
+                    da.Fill(table1);
+
+                    DataTable uniqueTable = table1.AsEnumerable()
+                                              .GroupBy(row => row.Field<int>("customer_id"))
+                                              .Select(group => group.First())
+                                              .CopyToDataTable();
+
+                    comboBoxcid.DataSource = uniqueTable;
+                    comboBoxcid.DisplayMember = "customer_id";
+                    comboBoxcid.ValueMember = "customer_id";
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("An error occurred: " + ex.Message);
+            }
+
+            //combobox product id
+            try
+            {
+                using (SqlConnection Con = new SqlConnection(connectionString))
+                {
+                    SqlCommand cmdc = new SqlCommand("SELECT DISTINCT production_id FROM production", Con);
+                    SqlDataAdapter dac = new SqlDataAdapter();
+                    dac.SelectCommand = cmdc;
+                    DataTable table1 = new DataTable();
+                    dac.Fill(table1);
+                    DataTable uniqueTable = table1.AsEnumerable()
+                                              .GroupBy(row => row.Field<int>("production_id"))
+                                              .Select(group => group.First())
+                                              .CopyToDataTable();
+
+                    comboBoxppid.DataSource = uniqueTable;
+                    comboBoxppid.DisplayMember = "production_id";
+                    comboBoxppid.ValueMember = "production_id";
+
+                    Con.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("An error occurred: " + ex.Message);
+            }
+
+            //combobox customer id
+            try
+            {
+                using (SqlConnection Con = new SqlConnection(connectionString))
+                {
+                    SqlCommand cmdc = new SqlCommand("SELECT DISTINCT customer_id FROM customer", Con);
+                    SqlDataAdapter dac = new SqlDataAdapter();
+                    dac.SelectCommand = cmdc;
+                    DataTable table1 = new DataTable();
+                    dac.Fill(table1);
+                    DataTable uniqueTable = table1.AsEnumerable()
+                                              .GroupBy(row => row.Field<int>("customer_id"))
+                                              .Select(group => group.First())
+                                              .CopyToDataTable();
+
+                    comboBoxpcid.DataSource = uniqueTable;
+                    comboBoxpcid.DisplayMember = "customer_id";
+                    comboBoxpcid.ValueMember = "customer_id";
+
+                    Con.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("An error occurred: " + ex.Message);
+            }
+
+            //combobox payment type
+            try
+            {
+                using (SqlConnection Con = new SqlConnection(connectionString))
+                {
+                    SqlCommand cmdc = new SqlCommand("SELECT payment_type_id, payment_type_name FROM payment_type", Con);
+                    SqlDataAdapter dac = new SqlDataAdapter(cmdc);
+                    DataTable table1 = new DataTable();
+                    dac.Fill(table1);
+
+                    var uniqueRows = table1.AsEnumerable()
+                                            .GroupBy(row => row.Field<string>("payment_type_name"))
+                                            .Select(group => group.First())
+                                            .CopyToDataTable();
+
+                    comboBoxptype.DataSource = uniqueRows;
+                    comboBoxptype.DisplayMember = "payment_type_name";
+                    comboBoxptype.ValueMember = "payment_type_id";
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("An error occurred: " + ex.Message);
+            }
+
+
+            //combobox payment id
+            try
+            {
+                using (SqlConnection Con = new SqlConnection(connectionString))
+                {
+                    SqlCommand cmdc = new SqlCommand("SELECT production_id, production_price, customer_id, payment_id, amount, date_is, payment_type_name, invoice_id FROM view11", Con);
+                    SqlDataAdapter dac = new SqlDataAdapter();
+                    dac.SelectCommand = cmdc;
+                    DataTable table1 = new DataTable();
+                    dac.Fill(table1);
+
+                    comboBoxpayid.DataSource = table1;
+                    comboBoxpayid.DisplayMember = "payment_id";
+                    comboBoxpayid.ValueMember = "payment_id";
+                    Con.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("An error occurred: " + ex.Message);
+            }
+        }
+
+        private void labelhome_Click(object sender, EventArgs e)
+        {
+            this.Hide();
+            admin dashboard = new admin();
+            dashboard.tra = tra;
+            dashboard.Show();
+        }
+
+        private void labelproduc_Click(object sender, EventArgs e)
+        {
+            this.Hide();
+            ad_product dashboard = new ad_product();
+            dashboard.tra = tra;
+            dashboard.Show();
+        }
+
+        private void label3_Click(object sender, EventArgs e)
+        {
+            this.Hide();
+            ad_staff dashboard = new ad_staff();
+            dashboard.tra = tra;
+            dashboard.Show();
+        }
+
+        private void label4_Click(object sender, EventArgs e)
+        {
+            this.Hide();
+            ad_acters dashboard = new ad_acters();
+            dashboard.tra = tra;
+            dashboard.Show();
+        }
+
+        private void labelcustomer_Click(object sender, EventArgs e)
+        {
+            this.Hide();
+            ad_customer dashboard = new ad_customer();
+            dashboard.tra = tra;
+            dashboard.Show();
+        }
+
+        private void labelaccount_Click(object sender, EventArgs e)
+        {
+            this.Hide();
+            ad_account dashboard = new ad_account();
+            dashboard.tra = tra;
+            dashboard.Show();
+        }
+
+        private void buttexit_Click(object sender, EventArgs e)
+        {
+            DialogResult result = MessageBox.Show("Are you sure you want to Exit?", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (result == DialogResult.Yes)
+            {
+                Application.Exit();
+            }
+        }
+
+        private void piclose_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
+        }
+
+        private void pimini_Click(object sender, EventArgs e)
+        {
+            WindowState = FormWindowState.Minimized;
+        }
+
+        private void buttlogout_Click(object sender, EventArgs e)
+        {
+            DialogResult result = MessageBox.Show("Are you sure you want Logout?", "Confirmation", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (result == DialogResult.Yes)
+            {
+                this.Close();
+                Login form = new Login();
+                form.Show();
+            }
+        }
+
+        private void piclose_MouseLeave(object sender, EventArgs e)
+        {
+            piclose.BackColor = Color.WhiteSmoke;
+        }
+
+        private void piclose_MouseHover(object sender, EventArgs e)
+        {
+            piclose.BackColor = Color.Red;
+        }
+
+        private void pimini_MouseLeave(object sender, EventArgs e)
+        {
+            pimini.BackColor = Color.WhiteSmoke;
+        }
+
+        private void pimini_MouseHover(object sender, EventArgs e)
+        {
+            pimini.BackColor = Color.Gray;
+        }
+
+        private void comboBoxpid_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            dataGridView1.Refresh();
+
+            int productid;
+            if (int.TryParse(comboBoxpid.SelectedValue?.ToString(), out productid))
+            {
+                try
+                {
+                    using (SqlConnection Con = new SqlConnection(connectionString))
+                    {
+                        Con.Open();
+
+                        string querya = "SELECT DISTINCT production_id, production_price, customer_id, payment_id, amount, date_is, payment_type_name, invoice_id FROM view11 WHERE production_id = @production_id";
+
+                        using (SqlCommand cmda = new SqlCommand(querya, Con))
+                        {
+                            // Get the production_id from the selected row
+                            int productionId = Convert.ToInt32(productid);
+
+                            cmda.Parameters.AddWithValue("@production_id", productionId);
+
+                            using (SqlDataAdapter daa = new SqlDataAdapter(cmda))
+                            {
+                                DataTable dta = new DataTable();
+                                daa.Fill(dta);
+
+                                // Assuming dataGridView2 is another DataGridView to display the results
+                                dataGridView1.DataSource = dta;
+                            }
+                        }
+                        Con.Close();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("An error occurred: " + ex.Message);
+                }
+            }
+        }
+
+        private void comboBoxcid_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            dataGridView1.Refresh();
+
+            int customer_id;
+            if (int.TryParse(comboBoxcid.SelectedValue?.ToString(), out customer_id))
+            {
+                try
+                {
+                    using (SqlConnection Con = new SqlConnection(connectionString))
+                    {
+                        Con.Open();
+
+                        string querya = "SELECT DISTINCT customer_id, production_id, production_price, payment_id, amount, date_is, payment_type_name, invoice_id FROM view11 WHERE customer_id = @customer_id";
+
+                        using (SqlCommand cmda = new SqlCommand(querya, Con))
+                        {
+                            // Get the production_id from the selected row
+                            int productionId = Convert.ToInt32(customer_id);
+
+                            cmda.Parameters.AddWithValue("@customer_id", customer_id);
+
+                            using (SqlDataAdapter daa = new SqlDataAdapter(cmda))
+                            {
+                                DataTable dta = new DataTable();
+                                daa.Fill(dta);
+
+                                // Assuming dataGridView2 is another DataGridView to display the results
+                                dataGridView1.DataSource = dta;
+                            }
+                        }
+                        Con.Close();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("An error occurred: " + ex.Message);
+                }
+            }
+        }
+
+        private void comboBoxpayid_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            int payment_id;
+            if (int.TryParse(comboBoxpayid.SelectedValue?.ToString(), out payment_id))
+            {
+                try
+                {
+                    using (SqlConnection Con = new SqlConnection(connectionString))
+                    {
+                        Con.Open();
+
+                        // Get the production_id from the production_payment table
+                        string productionQuery = "SELECT production_id FROM production_payment WHERE payment_id = @payment_id";
+                        using (SqlCommand productionCmd = new SqlCommand(productionQuery, Con))
+                        {
+                            productionCmd.Parameters.AddWithValue("@payment_id", payment_id);
+
+                            int productionId = Convert.ToInt32(productionCmd.ExecuteScalar());
+
+                            // Query the view11 table with the production_id
+                            string query2 = "SELECT production_id, customer_id, payment_id, invoice_id, invoice_date, invoice_amount, emp_id FROM view11 WHERE production_id = @production_id";
+                            using (SqlCommand cmda2 = new SqlCommand(query2, Con))
+                            {
+                                cmda2.Parameters.AddWithValue("@production_id", productionId);
+
+                                using (SqlDataAdapter daa2 = new SqlDataAdapter(cmda2))
+                                {
+                                    DataTable dta2 = new DataTable();
+                                    daa2.Fill(dta2);
+
+                                    label14.Visible = true;
+                                    // Assuming dataGridView2 is another DataGridView to display the results
+                                    dataGridView2.DataSource = dta2;
+                                }
+                            }
+                        }
+
+                        Con.Close();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("An error occurred: " + ex.Message);
+                }
+            }
+            else
+            {
+                // Handle the case where the payment_id is not a valid integer
+            }
+
+            try
+            {
+                if (int.TryParse(comboBoxpayid.SelectedValue?.ToString(), out payment_id))
+                {
+                    // Conversion successful, use productid
+                    using (SqlConnection Con = new SqlConnection(connectionString))
+                    {
+                        Con.Open();
+                        SqlCommand cmd = Con.CreateCommand();
+                        cmd.CommandType = CommandType.Text;
+
+                        cmd.CommandText = "SELECT production_id, customer_id, payment_id, amount, date_is, payment_type_name, invoice_id, invoice_date, invoice_amount, emp_id FROM view11 WHERE payment_id = @payment_id";
+                        cmd.Parameters.AddWithValue("@payment_id", payment_id);
+
+                        SqlDataAdapter da = new SqlDataAdapter(cmd);
+                        DataTable dt = new DataTable();
+                        da.Fill(dt);
+
+                        if (dt.Rows.Count > 0)
+                        {
+                            comboBoxppid.Text = dt.Rows[0]["production_id"].ToString();
+                            comboBoxpcid.Text = dt.Rows[0]["customer_id"].ToString();
+                            comboBoxpayid.Text = dt.Rows[0]["payment_id"].ToString();
+                            textBoxamo.Text = dt.Rows[0]["amount"].ToString();
+                            dateTimePicker1.Value = Convert.ToDateTime(dt.Rows[0]["date_is"]);
+                            comboBoxptype.Text = dt.Rows[0]["payment_type_name"].ToString();
+                            textBoxinid.Text = dt.Rows[0]["invoice_id"].ToString();
+                            dateTimePicker2.Value = Convert.ToDateTime(dt.Rows[0]["invoice_date"]);
+                            textBoxinamo.Text = dt.Rows[0]["invoice_amount"].ToString();
+                            textBoxemid.Text = dt.Rows[0]["emp_id"].ToString();
+                        }
+                        else
+                        {
+                            // Handle the case when no rows are returned
+                        }
+                        Con.Close();
+                    }
+                }
+                else
+                {
+                    // Handle the case when the SelectedValue is not a valid integer
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("An error occurred: " + ex.Message);
+            }
+        }
+
+        private void buttonclandre_Click(object sender, EventArgs e)
+        {
+            this.Hide();
+            ad_payment dashboard = new ad_payment();
+            dashboard.tra = tra;
+            dashboard.Show();
+        }
+
+        private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            try
+            {
+                using (SqlConnection Con = new SqlConnection(connectionString))
+                {
+                    Con.Open();
+
+                    string query = "SELECT production_id, customer_id, payment_id, invoice_id, invoice_date, invoice_amount, emp_id FROM view11 WHERE production_id = @production_id";
+
+                    using (SqlCommand cmda = new SqlCommand(query, Con))
+                    {
+                        // Get the production_id from the selected row
+                        int productionId = Convert.ToInt32(dataGridView1.Rows[e.RowIndex].Cells["production_id"].Value);
+
+                        cmda.Parameters.AddWithValue("@production_id", productionId);
+
+                        using (SqlDataAdapter daa = new SqlDataAdapter(cmda))
+                        {
+                            DataTable dta = new DataTable();
+                            daa.Fill(dta);
+
+                            // Assuming dataGridView2 is another DataGridView to display the results
+                            dataGridView2.DataSource = dta;
+                        }
+                    }
+                    Con.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("An error occurred: " + ex.Message);
+            }
+
+            if (e.RowIndex >= 0 && e.ColumnIndex >= 0)
+            {
+                DataGridViewRow row = dataGridView1.Rows[e.RowIndex];
+
+                if (int.TryParse(row.Cells["payment_id"].Value.ToString(), out int pid))
+                {
+                    using (SqlConnection Con = new SqlConnection(connectionString))
+                    {
+                        Con.Open();
+                        SqlCommand cmd = Con.CreateCommand();
+                        cmd.CommandType = CommandType.Text;
+
+                        cmd.CommandText = "SELECT production_id, customer_id, payment_id, amount, date_is, payment_type_name, invoice_id, invoice_date, invoice_amount, emp_id FROM view11 WHERE payment_id = @payment_id";
+                        cmd.Parameters.AddWithValue("@payment_id", pid);
+
+                        SqlDataAdapter da = new SqlDataAdapter(cmd);
+                        DataTable dt = new DataTable();
+                        da.Fill(dt);
+
+                        if (dt.Rows.Count > 0)
+                        {
+                            comboBoxppid.Text = dt.Rows[0]["production_id"].ToString();
+                            comboBoxpcid.Text = dt.Rows[0]["customer_id"].ToString();
+                            comboBoxpayid.Text = dt.Rows[0]["payment_id"].ToString();
+                            textBoxamo.Text = dt.Rows[0]["amount"].ToString();
+                            dateTimePicker1.Value = Convert.ToDateTime(dt.Rows[0]["date_is"]);
+                            comboBoxptype.Text = dt.Rows[0]["payment_type_name"].ToString();
+                            textBoxinid.Text = dt.Rows[0]["invoice_id"].ToString();
+                            dateTimePicker2.Value = Convert.ToDateTime(dt.Rows[0]["invoice_date"]);
+                            textBoxinamo.Text = dt.Rows[0]["invoice_amount"].ToString();
+                            textBoxemid.Text = dt.Rows[0]["emp_id"].ToString();
+                        }
+                        else
+                        {
+                            // Handle the case when no rows are returned
+                        }
+                        Con.Close();
+                    }
+                }
+                else
+                {
+                    // Handle parsing error
+                }
+            }
+        }
+
+        private void labelprope_Click(object sender, EventArgs e)
+        {
+            this.Hide();
+            ad_property dashboard = new ad_property();
+            dashboard.tra = tra;
+            dashboard.Show();
+        }
+
+        private void textBoxamo_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar) && (e.KeyChar != '.'))
+            {
+                e.Handled = true;
+            }
+
+            // Allow only one decimal point
+            if ((e.KeyChar == '.') && ((sender as System.Windows.Forms.TextBox).Text.Contains('.')))
+            {
+                e.Handled = true;
+            }
+        }
+
+        private void textBoxinamo_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (!char.IsControl(e.KeyChar) && !char.IsDigit(e.KeyChar) && (e.KeyChar != '.'))
+            {
+                e.Handled = true;
+            }
+
+            // Allow only one decimal point
+            if ((e.KeyChar == '.') && ((sender as System.Windows.Forms.TextBox).Text.Contains('.')))
+            {
+                e.Handled = true;
+            }
+        }
+
+        private void label2_Click(object sender, EventArgs e)
+        {
+
+        }
+    }
+}
